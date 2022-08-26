@@ -13,3 +13,7 @@ This repository manuscript source code and data.
 -   `animal-data-process.R` produces a dataframe of the PREDICT bat coronavirus data from Côte d’Ivoire (`data/civ-bat-cov.rds`). It pulls data from a local copy of the database, and also includes methods for retrieving the data from the [USAID DDL](https://data.usaid.gov/Global-Health-Security-in-Development-GHSD-/PREDICT-Emerging-Pandemic-Threats-Project/tqea-hwmr).
 
 -   `animal-data-summary.R` includes code to summarize the animal data results and to generate manuscript figures. 
+
+- `human-global-data-cleaning.R`  includes code for cleaning the global PREDICT eidith dataset, focusing on the human_2 and site tables
+
+- `human-civ-data-analysis.R` includes code for subsetting, cleaning, and analyzing the Côte d'Ivoire human and site data
