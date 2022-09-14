@@ -14,6 +14,13 @@ This repository manuscript source code and data.
 
 -   `animal-data-summary.R` includes code to summarize the animal data results and to generate manuscript figures. 
 
-- `human-global-data-cleaning.R`  includes code for cleaning the global PREDICT eidith dataset, focusing on the human_2 and site tables
+For internal EcoHealth Alliance staff with access to the full eidith dataset:
 
-- `human-civ-data-analysis.R` includes code for subsetting, cleaning, and analyzing the Côte d'Ivoire human and site data
+- `human-global-data-cleaning.R` includes code for cleaning the global PREDICT eidith dataset, focusing on the human_2 and events_2 tables
+
+- `human-civ-data-analysis.R` includes code for subsetting, cleaning, and analyzing the Côte d'Ivoire human and site data from the eidith dataset
+
+For external collaborators without access to the full eidith dataset:
+
+- `human-civ-deidentified-data-analysis.R` includes code for analyzing the de-identified Côte d'Ivoire subset available upon request on Zenodo
+ 
