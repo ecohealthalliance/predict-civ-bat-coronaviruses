@@ -2,6 +2,7 @@
 ## Author: Shannon Ball ##
 ## Date: July 19, 2022 ##
 
+
 #### Creating CIV Subset ####
 
 #Human Questionnaires
@@ -88,7 +89,34 @@ civ_human_site$concurrent_sites <- ifelse(civ_human_site$concurrent_sampling_sit
                                                  ifelse(civ_human_site$concurrent_sampling_site =="Concurrent Site 1", "Bonon Concurrent Site 1",
                                                         ifelse(civ_human_site$concurrent_sampling_site == "Concurrent Site 2","Bouafle Concurrent Site 2", NA))))
 civ_human_site$concurrent_sites <- factor(civ_human_site$concurrent_sites, levels = c("Bonon Concurrent Site 1", "Bouafle Concurrent Site 2", "Bonon Clinic Concurrent Site 1", "Bouafle Clinic Concurrent Site 2")) #factoring and sorting site var
-#freq(civ_human_site$concurrent_sites)
+freq(civ_human_site$concurrent_sites)
+#Creating de-identified concurrent site names variable
+civ_human_site$concurrent_sites2 <- ifelse(civ_human_site$concurrent_sites == "Bouafle Clinic Concurrent Site 2", "Clinic Concurrent Site 2",
+                                           ifelse(civ_human_site$concurrent_sites == "Bonon Clinic Concurrent Site 1", "Clinic Concurrent Site 1",
+                                                  ifelse(civ_human_site$concurrent_sites =="Bonon Concurrent Site 1", "Concurrent Site 1",
+                                                         ifelse(civ_human_site$concurrent_sites == "Bouafle Concurrent Site 2", "Concurrent Site 2", NA))))
+civ_human_site$concurrent_sites2 <- factor(civ_human_site$concurrent_sites2, levels = c("Concurrent Site 1", "Concurrent Site 2", "Clinic Concurrent Site 1", "Clinic Concurrent Site 2")) #factoring and sorting site var
+freq(civ_human_site$concurrent_sites2)
+
+#### Creating deidentified dataset for Zenodo ####
+
+#as.data.frame(sapply(civ_human_site, class)) -> civ_human_site_vars
+#write.csv(civ_human_site_vars, file=here("Outputs", "CIV Human Site Var Names.csv"))
+  civ_human_site_zenodo <- subset(civ_human_site, select=-c(gains4_event_id, project.x, country.x, site_name, concurrent_sampling_site, district, state_prov, site_latitude,
+                                                            site_longitude, event_latitude, event_longitude, duration_days, event_name.x, event_recorder, organization,
+                                                            disease_transmission_interfaces, habitat_type_p1, habitat_type_notes_p1, landscape_conversion_p1, anthropogenic_change_p1,
+                                                            outbreak_name, veterinarian_care, rodents_present, bats_present, nhp_present, birds_present, carnivores_present, ungulates_present,
+                                                            pangolins_present, poultry_present, goats_present, camels_present, swine_present, horses_present, cattle_present, dogs_present,
+                                                            cats_present, drinking_water_shared, bathing_water_shared, toilets_available, drinking_water_source.x, average_trip_to_water,
+                                                            insect_vectors, vector_control_measures, community_engagement, community_engagement_date, community_engagement_notes, nbr_beds,
+                                                            is_deep_forest, project.y, event_name.y, country.y, gains4_sample_unit_id, season_modelled, season_modelled_deviation, interview_city,
+                                                            interview_state_prov, interview_latitude, interview_longitude, live_city, live_state_prov, live_latitude, live_longitude,
+                                                            children_in_dwelling, males_in_dwelling, demographic_notes, modules_completed, work_location_city, work_location_prov,
+                                                            work_location_latitude, work_location_longitude, travelled_city_loc_1, latitude_loc_1, longitude_loc_1, travelled_city_loc_2,
+                                                            latitude_loc_2, longitude_loc_2, travelled_city_loc_3, latitude_loc_3, longitude_loc_3, travelled_city_loc_4, latitude_loc_4, longitude_loc_4,
+                                                            travelled_city_loc_5, latitude_loc_5, longitude_loc_5, travelled_city_loc_6, latitude_loc_6, longitude_loc_6, movement_notes,
+                                                            specimens_collected, agecat10yr, agecat20yr, agecat4, agecat12, agecat6, concurrent_sites))
+  #write.csv(civ_human_site_zenodo, file=here("Outputs", "Data Cleaning", "CIV Human Site Zenodo.csv"))
 
 #### Viewing Data ####
 
@@ -139,141 +167,141 @@ civ_human_site$concurrent_sites <- factor(civ_human_site$concurrent_sites, level
 
 
 #### Data Analysis ####
-## Summary Tables ####
+  ## Summary Tables ####
 
-#Demographics
-civdemos <- c('gender_civ', 'agecat5', 'highest_education', 'highest_education_mother2', 'length_lived', 'livelihoods_crops',
-              'livelihoods_wildlife_rest', 'livelihoods_animal_trade', 'livelihoods_animal_production', 'livelihoods_meat_processing',
-              'livelihoods_hunter', 'livelihoods_hcw', 'livelihoods_construction', 'livelihoods_other')
-CIVDemos <- CreateTableOne(vars=civdemos, data=civ_human_site, factorVars=civdemos)
-print(CIVDemos, showAllLevels = F, varLabels = T, format="f")
-CIVDemos_exp <- print(CIVDemos, showAllLevels = F, varLabels = T, format="f", test=FALSE,
-                      noSpaces = TRUE, printToggle = FALSE)
-#write.csv(CIVDemos_exp, file = here("Outputs", "Tables", "CIV Demographics Summary Table.csv"))
-
-#Bat Contact
-#Long
-civ_bat_contact_types <- c('bats_contact_pet', 'bats_contact_handled', 'bats_contact_raised', 'bats_contact_feces_food', 'bats_contact_house', 'bats_contact_cooked', 'bats_contact_eaten_raw','bats_contact_eaten_sick', 'bats_contact_found_dead', 'bats_contact_scratched_bitten', 'bats_contact_hunted', 'bats_contact_slaughtered')
-CIVBatContact <- CreateTableOne(vars=civ_bat_contact_types, data=civ_human_site, factorVars = civ_bat_contact_types)
-print(CIVBatContact, showAllLevels = T, varLabels = T, format="f")
-CIVBatContact_exp <- print(CIVBatContact, showAllLevels = F, varLabels = T, format="f", test=FALSE,
-                           noSpaces = TRUE, printToggle = FALSE)
-#write.csv(CIVBatContact_exp, file = here("Outputs", "Tables", "CIV Bat Contact Summary Table_Long.csv"))
-
-#Pivoted
-subsetcivbats <- civ_human_site |> select('participant_id', 'bats_contact_dummy', 'bats_contact_pet', 'bats_contact_handled', 'bats_contact_raised', 'bats_contact_feces_food', 'bats_contact_house', 'bats_contact_cooked', 'bats_contact_eaten_raw','bats_contact_eaten_sick', 'bats_contact_found_dead', 'bats_contact_scratched_bitten', 'bats_contact_hunted', 'bats_contact_slaughtered') #creating subset of all bat contact vars
-subsetcivbats$bats_contact_any <- ifelse(subsetcivbats$bats_contact_dummy=='Yes',1,0) #recoding bats_contact_dummy as bats_contact_any, formatted as double instead of factor to be compatible with other vars
-subsetcivbats <- subset(subsetcivbats, select = -c(bats_contact_dummy)) #dropping bats_contact_dummy var
-subsetcivbatslong <- subsetcivbats |> pivot_longer(-c("participant_id"), names_to = "Bat_Contact", values_to="Response") #pivoting data long, but specifying that we don't want to pivot participant ID
-subsetcivbatscounts <- subsetcivbatslong |> group_by(Bat_Contact) |> dplyr::count(Response) #calculating count of records
-head(subsetcivbatscounts)
-subsetcivbatscountswide <- subsetcivbatscounts |> pivot_wider(names_from="Response", values_from="n", values_fill = 0)#pivoting data back to wide, now that calculation completed
-rename (subsetcivbatscountswide, No = '0', Yes = '1') #renaming response options
-subsetcivbatscountswide
-#write.csv(subsetcivbatscountswide, file = here("Outputs", "Tables", "CIV Bat Contact Summary Table_Pivoted.csv"))
-
-## Statistical Analysis ####
-
-# Demographics Stratified by Bat Contact
-CIVBatDemos <- CreateTableOne(vars=civdemos, strata='bats_contact_dummy', data=civ_human_site, factorVars=civdemos) #creating table using civdemos vector and bat contact dummy
-print(CIVBatDemos, showAllLevels = T, varLabels = T, format="f", testExact=fisher.test) #printing table in console
-CIVBatDemos_exp <- print(CIVBatDemos, showAllLevels = T, varLabels = T, format="f", testExact=fisher.test,
-                         noSpaces = TRUE, printToggle = FALSE) #preparing table to export
-#write.csv(CIVBatDemos_exp, file = here("Outputs", "Tables", "CIV Demographics Stratified by Bat Contact.csv")) #exporting table
-
-#Binomial Probability
-#Creating vector of demographic vars of interest
-civdemosbp <- c('gender_civ', 'agecat5', 'highest_education', 'highest_education_mother2', 'length_lived', 'livelihoods_crops',
+  #Demographics
+  civdemos <- c('gender_civ', 'agecat5', 'highest_education', 'highest_education_mother2', 'length_lived', 'livelihoods_crops',
                 'livelihoods_wildlife_rest', 'livelihoods_animal_trade', 'livelihoods_animal_production', 'livelihoods_meat_processing',
                 'livelihoods_hunter', 'livelihoods_hcw', 'livelihoods_construction', 'livelihoods_other')
+  CIVDemos <- CreateTableOne(vars=civdemos, data=civ_human_site, factorVars=civdemos)
+  print(CIVDemos, showAllLevels = F, varLabels = T, format="f")
+  CIVDemos_exp <- print(CIVDemos, showAllLevels = F, varLabels = T, format="f", test=FALSE,
+                        noSpaces = TRUE, printToggle = FALSE)
+  #write.csv(CIVDemos_exp, file = here("Outputs", "Tables", "CIV Demographics Summary Table.csv"))
 
-#Preliminary cleaning of list of var names
-#str_replace_all(civdemosbp, "_", " ") -> civdemosbp2
-#str_remove(civdemosbp2, "2| ind") -> civdemosbp2
-#str_to_title(civdemosbp2) -> civdemosbp2
-#Converting list to comma separated string to copy and paste
-#paste(shQuote(civdemosbp2), collapse = ", ")
+  #Bat Contact
+  #Long
+  civ_bat_contact_types <- c('bats_contact_pet', 'bats_contact_handled', 'bats_contact_raised', 'bats_contact_feces_food', 'bats_contact_house', 'bats_contact_cooked', 'bats_contact_eaten_raw','bats_contact_eaten_sick', 'bats_contact_found_dead', 'bats_contact_scratched_bitten', 'bats_contact_hunted', 'bats_contact_slaughtered')
+  CIVBatContact <- CreateTableOne(vars=civ_bat_contact_types, data=civ_human_site, factorVars = civ_bat_contact_types)
+  print(CIVBatContact, showAllLevels = T, varLabels = T, format="f")
+  CIVBatContact_exp <- print(CIVBatContact, showAllLevels = F, varLabels = T, format="f", test=FALSE,
+                             noSpaces = TRUE, printToggle = FALSE)
+  #write.csv(CIVBatContact_exp, file = here("Outputs", "Tables", "CIV Bat Contact Summary Table_Long.csv"))
 
-#Creating vector of clean var names
-civdemosbp_clean <- c('Gender', 'Age', 'Highest level of education', "Mother's highest level of education", 'Length of time living at location',
-                      'Crop production', 'Wildlife restaurant business', 'Wild/exotic animal trade/market business', 'Rancher/farmer/animal production business', 'Meat processing, slaughterhouse, abattoir', 'Hunter/trapper/fisher', 'Nurse, doctor, traditional healer, community health worker', 'Construction', 'Other')
+  #Pivoted
+  subsetcivbats <- civ_human_site |> select('participant_id', 'bats_contact_dummy', 'bats_contact_pet', 'bats_contact_handled', 'bats_contact_raised', 'bats_contact_feces_food', 'bats_contact_house', 'bats_contact_cooked', 'bats_contact_eaten_raw','bats_contact_eaten_sick', 'bats_contact_found_dead', 'bats_contact_scratched_bitten', 'bats_contact_hunted', 'bats_contact_slaughtered') #creating subset of all bat contact vars
+  subsetcivbats$bats_contact_any <- ifelse(subsetcivbats$bats_contact_dummy=='Yes',1,0) #recoding bats_contact_dummy as bats_contact_any, formatted as double instead of factor to be compatible with other vars
+  subsetcivbats <- subset(subsetcivbats, select = -c(bats_contact_dummy)) #dropping bats_contact_dummy var
+  subsetcivbatslong <- subsetcivbats |> pivot_longer(-c("participant_id"), names_to = "Bat_Contact", values_to="Response") #pivoting data long, but specifying that we don't want to pivot participant ID
+  subsetcivbatscounts <- subsetcivbatslong |> group_by(Bat_Contact) |> dplyr::count(Response) #calculating count of records
+  head(subsetcivbatscounts)
+  subsetcivbatscountswide <- subsetcivbatscounts |> pivot_wider(names_from="Response", values_from="n", values_fill = 0)#pivoting data back to wide, now that calculation completed
+  rename (subsetcivbatscountswide, No = '0', Yes = '1') #renaming response options
+  subsetcivbatscountswide
+  #write.csv(subsetcivbatscountswide, file = here("Outputs", "Tables", "CIV Bat Contact Summary Table_Pivoted.csv"))
 
-#Creating lookup table for clean var names
-names(civdemosbp_clean) <- civdemosbp
-tibble(variable = c('gender_civ', 'agecat5', 'highest_education', 'highest_education_mother2', 'length_lived', 'livelihoods_crops',
-                    'livelihoods_wildlife_rest', 'livelihoods_animal_trade', 'livelihoods_animal_production', 'livelihoods_meat_processing',
-                    'livelihoods_hunter', 'livelihoods_hcw', 'livelihoods_construction', 'livelihoods_other')) %>%
-  mutate(variable_clean = civdemosbp_clean[variable]) -> civ_bp_lookup
+  ## Statistical Analysis ####
 
-#Creating variable groups
-civ_bp_lookup <- civ_bp_lookup %>%
-  mutate(group = ifelse(variable=="gender_civ" | variable=="agecat5" | variable=="highest_education"| variable=="highest_education_mother2"| variable=="length_lived", "Demographics","Livelihoods"))
+  # Demographics Stratified by Bat Contact
+  CIVBatDemos <- CreateTableOne(vars=civdemos, strata='bats_contact_dummy', data=civ_human_site, factorVars=civdemos) #creating table using civdemos vector and bat contact dummy
+  print(CIVBatDemos, showAllLevels = T, varLabels = T, format="f", testExact=fisher.test) #printing table in console
+  CIVBatDemos_exp <- print(CIVBatDemos, showAllLevels = T, varLabels = T, format="f", testExact=fisher.test,
+                           noSpaces = TRUE, printToggle = FALSE) #preparing table to export
+  #write.csv(CIVBatDemos_exp, file = here("Outputs", "Tables", "CIV Demographics Stratified by Bat Contact.csv")) #exporting table
 
-#Calculating binomial confidence intervals
-civbatbp <- map_dfr(civdemosbp,
-                    function (col_name){ #define function within map function
+  #Binomial Probability
+  #Creating vector of demographic vars of interest
+  civdemosbp <- c('gender_civ', 'agecat5', 'highest_education', 'highest_education_mother2', 'length_lived', 'livelihoods_crops',
+                  'livelihoods_wildlife_rest', 'livelihoods_animal_trade', 'livelihoods_animal_production', 'livelihoods_meat_processing',
+                  'livelihoods_hunter', 'livelihoods_hcw', 'livelihoods_construction', 'livelihoods_other')
 
-                      dat_counts <- civ_human_site %>% #inputting full data frame
-                        mutate(bats_contact_dummy = ifelse(bats_contact_dummy=="Yes", 1,0)) %>% #easier to convert it to 1s and 0s to add it up, could also do separately as pre-processing step, may try doing it as a factor
-                        group_by(!!sym(col_name)) %>% #grouping by x ("gender" or "travelled"), !!sym means group by gender the column name (sym=symbol), rather than the string gender
-                        summarize(bats_contact_positive = sum(bats_contact_dummy), #counting total number of people who reported contact
-                                  total_pop = n()) %>% #counting total number of people within category
-                        ungroup() #removing the group when you're done with it so that it doesn't stay grouped and potentially mess up future analysis
+  #Preliminary cleaning of list of var names
+  #str_replace_all(civdemosbp, "_", " ") -> civdemosbp2
+  #str_remove(civdemosbp2, "2| ind") -> civdemosbp2
+  #str_to_title(civdemosbp2) -> civdemosbp2
+  #Converting list to comma separated string to copy and paste
+  #paste(shQuote(civdemosbp2), collapse = ", ")
 
-                      dat_counts_bc <- binom.confint(dat_counts$bats_contact_positive, dat_counts$total_pop, methods='wilson') %>% #calculated BP and CIs in new dataframe
-                        mutate(variable = col_name) #add column named "variable" to indicate which variable we are summarizing
+  #Creating vector of clean var names
+  civdemosbp_clean <- c('Gender', 'Age', 'Highest level of education', "Mother's highest level of education", 'Length of time living at location',
+                        'Crop production', 'Wildlife restaurant business', 'Wild/exotic animal trade/market business', 'Rancher/farmer/animal production business', 'Meat processing, slaughterhouse, abattoir', 'Hunter/trapper/fisher', 'Nurse, doctor, traditional healer, community health worker', 'Construction', 'Other')
 
-                      out <- bind_cols(dat_counts, dat_counts_bc) %>% #binding two dataframes together
-                        rename(class = !!col_name)
+  #Creating lookup table for clean var names
+  names(civdemosbp_clean) <- civdemosbp
+  tibble(variable = c('gender_civ', 'agecat5', 'highest_education', 'highest_education_mother2', 'length_lived', 'livelihoods_crops',
+                      'livelihoods_wildlife_rest', 'livelihoods_animal_trade', 'livelihoods_animal_production', 'livelihoods_meat_processing',
+                      'livelihoods_hunter', 'livelihoods_hcw', 'livelihoods_construction', 'livelihoods_other')) %>%
+    mutate(variable_clean = civdemosbp_clean[variable]) -> civ_bp_lookup
 
-                      return(out)
+  #Creating variable groups
+  civ_bp_lookup <- civ_bp_lookup %>%
+    mutate(group = ifelse(variable=="gender_civ" | variable=="agecat5" | variable=="highest_education"| variable=="highest_education_mother2"| variable=="length_lived", "Demographics","Livelihoods"))
 
-                    })
+  #Calculating binomial confidence intervals
+  civbatbp <- map_dfr(civdemosbp,
+                      function (col_name){ #define function within map function
 
-#Joining with lookup table to get clean var names
-civbatbp <- left_join(civbatbp, civ_bp_lookup, by="variable")
-#Selecting vars for df to export
-civbatbp_exp <- civbatbp |> select(group, variable_clean, class, bats_contact_positive, total_pop, mean, lower, upper)
-#write.csv(civbatbp_exp, file=here("Outputs", "Tables", "CIV Bats Binomial Probability.csv"))
+                        dat_counts <- civ_human_site %>% #inputting full data frame
+                          mutate(bats_contact_dummy = ifelse(bats_contact_dummy=="Yes", 1,0)) %>% #easier to convert it to 1s and 0s to add it up, could also do separately as pre-processing step, may try doing it as a factor
+                          group_by(!!sym(col_name)) %>% #grouping by x ("gender" or "travelled"), !!sym means group by gender the column name (sym=symbol), rather than the string gender
+                          summarize(bats_contact_positive = sum(bats_contact_dummy), #counting total number of people who reported contact
+                                    total_pop = n()) %>% #counting total number of people within category
+                          ungroup() #removing the group when you're done with it so that it doesn't stay grouped and potentially mess up future analysis
 
-#Unadjusted Odds Ratios
+                        dat_counts_bc <- binom.confint(dat_counts$bats_contact_positive, dat_counts$total_pop, methods='wilson') %>% #calculated BP and CIs in new dataframe
+                          mutate(variable = col_name) #add column named "variable" to indicate which variable we are summarizing
 
-#ORs for Bat Contact by Demographics
-#Creating subset of vars of interest for calculating ORs
-civ_ors_df <- civ_human_site %>% select(participant_id, gender_civ, agecat5, highest_education, highest_education_mother2, length_lived, livelihoods_crops,
-                                        livelihoods_wildlife_rest, livelihoods_animal_trade, livelihoods_animal_production, livelihoods_meat_processing,
-                                        livelihoods_hunter, livelihoods_hcw, livelihoods_construction, livelihoods_other, bats_contact_dummy)
-#identifying predictor cols
-civdemos <- c('gender_civ', 'agecat5', 'highest_education', 'highest_education_mother2', 'length_lived', 'livelihoods_crops',
-              'livelihoods_wildlife_rest', 'livelihoods_animal_trade', 'livelihoods_animal_production', 'livelihoods_meat_processing',
-              'livelihoods_hunter', 'livelihoods_hcw', 'livelihoods_construction', 'livelihoods_other')
-civ_or_cols <- civ_ors_df[civdemos]
-#Generating list of ORs for all demos using lapply
-civ_ors_list <- lapply(as.list(civ_or_cols), function(x) glm(bats_contact_dummy ~ x, data=civ_ors_df, family=binomial(link="logit")))
-#Creating tibble from list of ORs
-do.call(rbind, lapply(civ_ors_list, broom::tidy, exponentiate=TRUE, conf.int=TRUE)) -> civ_ors
-civ_ors
-#write.csv(civ_ors, file=here("Outputs", "Tables", "CIV Bats Unadjusted Odds Ratios.csv"))
+                        out <- bind_cols(dat_counts, dat_counts_bc) %>% #binding two dataframes together
+                          rename(class = !!col_name)
 
-## Animal Contact Heat Map ####
-#Subsetting global heatmap dataframe
-#freq(animal_contact_heatmap_df_counts$country)
-civ_animal_contact_heatmap_df_counts <- subset(animal_contact_heatmap_df_counts, country=="Ivory Coast")
+                        return(out)
 
-#Generating heatmap with zeros NA
-civ_animal_contact_heatmap_df_counts %>% mutate(n_nas = ifelse(n==0,NA,n)) -> civ_animal_contact_heatmap_df_counts #creating new count variable where zeros are NAs for scale gradient
+                      })
 
-ggplot(civ_animal_contact_heatmap_df_counts, aes(x=Contact, y=factor(Animals, levels = rev(levels(factor(Animals)))), #factoring Animals and setting levels as reverse of original to sort Y axis in desired alphabetical order
-                                                 fill=n)) +
-  geom_tile(color="white", size = 0.80) + #creating white borders between tiles
-  geom_text(aes(label = n), size=4) + #labeling tiles with original count variable so that NAs still appear as 0s
-  ggtitle("Participant-reported animal contact (n=60)") + ylab("Animal Taxa") + xlab("Contact Type") + #setting titles
-  labs(fill = "Number of\nparticipants") + #labeling key and adding line break between "of" and "participants"
-  scale_fill_gradient(low="gold", high="darkorchid") + #setting color scale for values >1 and specific fill color for values of 0
-  theme(plot.title = element_text(color="black", size="14", face="bold"), #formatting title
-        axis.title.y = element_text(face="bold", size="12", color="black"), axis.title.x = element_text(face="bold", size="12", color="black"), #formatting axis titles
-        axis.text.y = element_text(color="black", size="10"), axis.text.x = element_text(angle = 45, hjust=1, color="black", size="10"), #formatting axis labels and adjusting angle of x-axis labels
-        legend.title = element_text(color="black", size="10")) #formatting legend title
+  #Joining with lookup table to get clean var names
+  civbatbp <- left_join(civbatbp, civ_bp_lookup, by="variable")
+  #Selecting vars for df to export
+  civbatbp_exp <- civbatbp |> select(group, variable_clean, class, bats_contact_positive, total_pop, mean, lower, upper)
+  #write.csv(civbatbp_exp, file=here("Outputs", "Tables", "CIV Bats Binomial Probability.csv"))
+
+  #Unadjusted Odds Ratios
+
+  #ORs for Bat Contact by Demographics
+  #Creating subset of vars of interest for calculating ORs
+  civ_ors_df <- civ_human_site %>% select(participant_id, gender_civ, agecat5, highest_education, highest_education_mother2, length_lived, livelihoods_crops,
+                                          livelihoods_wildlife_rest, livelihoods_animal_trade, livelihoods_animal_production, livelihoods_meat_processing,
+                                          livelihoods_hunter, livelihoods_hcw, livelihoods_construction, livelihoods_other, bats_contact_dummy)
+  #identifying predictor cols
+  civdemos <- c('gender_civ', 'agecat5', 'highest_education', 'highest_education_mother2', 'length_lived', 'livelihoods_crops',
+                'livelihoods_wildlife_rest', 'livelihoods_animal_trade', 'livelihoods_animal_production', 'livelihoods_meat_processing',
+                'livelihoods_hunter', 'livelihoods_hcw', 'livelihoods_construction', 'livelihoods_other')
+  civ_or_cols <- civ_ors_df[civdemos]
+  #Generating list of ORs for all demos using lapply
+  civ_ors_list <- lapply(as.list(civ_or_cols), function(x) glm(bats_contact_dummy ~ x, data=civ_ors_df, family=binomial(link="logit")))
+  #Creating tibble from list of ORs
+  do.call(rbind, lapply(civ_ors_list, broom::tidy, exponentiate=TRUE, conf.int=TRUE)) -> civ_ors
+  civ_ors
+  #write.csv(civ_ors, file=here("Outputs", "Tables", "CIV Bats Unadjusted Odds Ratios.csv"))
+
+  ## Animal Contact Heat Map ####
+  #Subsetting global heatmap dataframe
+  #freq(animal_contact_heatmap_df_counts$country)
+  civ_animal_contact_heatmap_df_counts <- subset(animal_contact_heatmap_df_counts, country=="Ivory Coast")
+
+  #Generating heatmap with zeros NA
+  civ_animal_contact_heatmap_df_counts %>% mutate(n_nas = ifelse(n==0,NA,n)) -> civ_animal_contact_heatmap_df_counts #creating new count variable where zeros are NAs for scale gradient
+
+  ggplot(civ_animal_contact_heatmap_df_counts, aes(x=Contact, y=factor(Animals, levels = rev(levels(factor(Animals)))), #factoring Animals and setting levels as reverse of original to sort Y axis in desired alphabetical order
+                                                   fill=n)) +
+    geom_tile(color="white", size = 0.80) + #creating white borders between tiles
+    geom_text(aes(label = n), size=4) + #labeling tiles with original count variable so that NAs still appear as 0s
+    ggtitle("Participant-reported animal contact (n=60)") + ylab("Animal Taxa") + xlab("Contact Type") + #setting titles
+    labs(fill = "Number of\nparticipants") + #labeling key and adding line break between "of" and "participants"
+    scale_fill_gradient(low="gold", high="darkorchid") + #setting color scale for values >1 and specific fill color for values of 0
+    theme(plot.title = element_text(color="black", size="14", face="bold"), #formatting title
+          axis.title.y = element_text(face="bold", size="12", color="black"), axis.title.x = element_text(face="bold", size="12", color="black"), #formatting axis titles
+          axis.text.y = element_text(color="black", size="10"), axis.text.x = element_text(angle = 45, hjust=1, color="black", size="10"), #formatting axis labels and adjusting angle of x-axis labels
+          legend.title = element_text(color="black", size="10")) #formatting legend title
 
 
 
